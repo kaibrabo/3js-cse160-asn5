@@ -91,6 +91,11 @@ function main() {
         const mtlLoader = new MTLLoader();
         mtlLoader.load('../Skull_v3/Skull_v3.mtl', (mtl) => {
             mtl.preload();
+
+            for (const material of Object.values(mtl.materials)) {
+                material.side = THREE.DoubleSide;
+            }
+
             objLoader.setMaterials(mtl);
             objLoader.load('../Skull_v3/Skull_v3.obj', (obj) => {
                 scene.add(obj);
