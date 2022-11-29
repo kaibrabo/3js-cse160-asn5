@@ -20,3 +20,8 @@
     transform-origin: top left;
     transform: scaleX(0);
 }
+
+#c {
+    width: 100%;
+    aspect-ratio: 2;
+}
