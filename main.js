@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { OBJLoader } from './OBJLoader.js';
 import { MTLLoader } from './MTLLoader.js';
+import { OrbitControls } from './OrbitControls.js';
 
 function main() {
     const canvas = document.getElementById('c');
@@ -18,19 +19,44 @@ function main() {
     // default canvas = 300x150px, aspect = 300/150 || 2.
     const aspect = 2;
     const near = 0.01;
-    const far = 50;
+    const far = 100;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
+
+    camera.position.set(0, 10, 30);
 
     // Scene
     const scene = new THREE.Scene();
+
+    // Orbit Controls
+    const controls = new OrbitControls(camera, canvas);
+    controls.target.set(0,5,0);
+    controls.update();
+
+    // Ground Plane
+    const planeSize = 40;
+    const loader = new THREE.TextureLoader();
+    const texture = loader.load('./checker.png');
+    const repeats = planeSize / 2;
+
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.magFilter = THREE.NearestFilter;
+    texture.repeat.set(repeats, repeats);
+
+    const planeGeo = new THREE.PlaneGeometry(planeSize, planeSize);
+    const planeMat = new THREE.MeshPhongMaterial({
+        map: texture,
+        side: THREE.DoubleSide,
+    });
+    const mesh = new THREE.Mesh(planeGeo, planeMat);
+    mesh.rotation.x = Math.PI * -0.5;
+    scene.add(mesh);
 
     // Box Geometry
     const boxWidth = 1;
     const boxHeight = 1;
     const boxDepth = 1;
     const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-
-    camera.position.z = 10;
 
     {
         const color = 0xFFFFFF;
@@ -68,7 +94,7 @@ function main() {
         loadManager.onLoad = () => {
             loadingElem.style.display = 'none';
             const cube = new THREE.Mesh(geometry, materials);
-            scene.add(cube); // add Mesh to Scene   
+            scene.add(cube); // add Mesh to Scene
             cube.position.x = x;
             cubes.push(cube)
         }
