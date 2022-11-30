@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import { OBJLoader } from './OBJLoader.js';
 import { MTLLoader } from './MTLLoader.js';
 import { OrbitControls } from './OrbitControls.js';
+import { Mesh } from 'three';
 
 function main() {
     const canvas = document.getElementById('c');
@@ -29,7 +30,7 @@ function main() {
 
     // Orbit Controls
     const controls = new OrbitControls(camera, canvas);
-    controls.target.set(0,5,0);
+    controls.target.set(0, 5, 0);
     controls.update();
 
     // Ground Plane
@@ -128,6 +129,27 @@ function main() {
                 sceneGraph.room = obj;
             });
         });
+    }
+
+    // Lighting - add Cube and Sphere
+    {
+        const cubeSize = 4;
+        const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
+        const cubeMat = new THREE.MeshPhongMaterial({ color: '#8AC' });
+        let mesh = new THREE.Mesh(cubeGeo, cubeMat);
+        
+        const sphereRadius = 3;
+        const sphereWidthDivisions = 32;
+        const sphereHeightDivisions = 16;
+        const sphereGeo = new THREE.SphereGeometry(sphereRadius, sphereWidthDivisions, sphereHeightDivisions);
+        const sphereMat = new THREE.MeshPhongMaterial({color: '#CA8'});
+        
+        mesh.position.set(cubeSize + 1, cubeSize / 2, 0);
+        scene.add(mesh);
+        
+        mesh = new Mesh(sphereGeo, sphereMat);
+        mesh.position.set(-sphereRadius - 1, sphereRadius + 2, 0);
+        scene.add(mesh);
     }
 
     function render(time) {
