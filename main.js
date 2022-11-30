@@ -1,8 +1,24 @@
 import * as THREE from 'three';
+import { Mesh } from 'three';
 import { OBJLoader } from './OBJLoader.js';
 import { MTLLoader } from './MTLLoader.js';
 import { OrbitControls } from './OrbitControls.js';
-import { Mesh } from 'three';
+import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.17/+esm';
+import './ColorGUIHelper.js';
+
+
+class ColorGUIHelper {
+    constructor(object, prop) {
+        this.object = object;
+        this.prop = prop;
+    }
+    get value() {
+        return `#${this.object[this.prop].getHexString()}`;
+    }
+    set value(hexString) {
+        this.object[this.prop].set(hexString);
+    }
+}
 
 function main() {
     const canvas = document.getElementById('c');
@@ -137,19 +153,32 @@ function main() {
         const cubeGeo = new THREE.BoxGeometry(cubeSize, cubeSize, cubeSize);
         const cubeMat = new THREE.MeshPhongMaterial({ color: '#8AC' });
         let mesh = new THREE.Mesh(cubeGeo, cubeMat);
-        
+
         const sphereRadius = 3;
         const sphereWidthDivisions = 32;
         const sphereHeightDivisions = 16;
         const sphereGeo = new THREE.SphereGeometry(sphereRadius, sphereWidthDivisions, sphereHeightDivisions);
-        const sphereMat = new THREE.MeshPhongMaterial({color: '#CA8'});
-        
+        const sphereMat = new THREE.MeshPhongMaterial({ color: '#CA8' });
+
         mesh.position.set(cubeSize + 1, cubeSize / 2, 0);
         scene.add(mesh);
-        
+
         mesh = new Mesh(sphereGeo, sphereMat);
         mesh.position.set(-sphereRadius - 1, sphereRadius + 2, 0);
         scene.add(mesh);
+    }
+
+    // Lighting - Ambient light
+    {
+        const color = 0x44FF88;
+        const intensity = 0.5;
+        const light = new THREE.AmbientLight(color, intensity);
+        scene.add(light);
+        
+        // lil-gui
+        const gui = new GUI();
+        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('color');
+        gui.add(light, 'intensity', 0, 2, 0.01);
     }
 
     function render(time) {
@@ -177,11 +206,6 @@ function main() {
     requestAnimationFrame(render);
 }
 
-
-
-
-
-
-
+// ====================================
 
 main();
