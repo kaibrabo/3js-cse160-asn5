@@ -21,7 +21,7 @@ class ColorGUIHelper {
 
 function main() {
     const canvas = document.getElementById('c');
-    const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+    const renderer = new THREE.WebGLRenderer({ canvas,  alpha: true, antialias: true});
 
     renderer.setSize(600, 300);
 
