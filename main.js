@@ -4,7 +4,6 @@ import { OBJLoader } from './OBJLoader.js';
 import { MTLLoader } from './MTLLoader.js';
 import { OrbitControls } from './OrbitControls.js';
 import GUI from 'https://cdn.jsdelivr.net/npm/lil-gui@0.17/+esm';
-import './ColorGUIHelper.js';
 
 
 class ColorGUIHelper {
@@ -122,11 +121,19 @@ function main() {
         };
     }
 
-    const dice = [
-        makeDiceInstance(geometry, 0x44aa88, 0),
-        makeDiceInstance(geometry, 0xaa8844, -2),
-        makeDiceInstance(geometry, 0xaa4488, 2),
-    ];
+    
+    makeDiceInstance(geometry, 0x44aa88, 0);
+    makeDiceInstance(geometry, 0xaa8844, -2);
+    makeDiceInstance(geometry, 0xaa4488, 2);
+
+    makeDiceInstance(geometry, 0x44aa88, 4);
+    makeDiceInstance(geometry, 0xaa8844, -4);
+    
+    makeDiceInstance(geometry, 0xaa4488, 6);
+    makeDiceInstance(geometry, 0x4488aa, -6);    
+    
+    makeDiceInstance(geometry, 0xaa4488, 8);
+    makeDiceInstance(geometry, 0x4488aa, -8);
 
     // loading an obj file
     {
@@ -154,30 +161,75 @@ function main() {
         const cubeMat = new THREE.MeshPhongMaterial({ color: '#8AC' });
         let mesh = new THREE.Mesh(cubeGeo, cubeMat);
 
+        mesh.position.set(cubeSize + 12, cubeSize / 2, 0);
+        scene.add(mesh);
+
+        const rectSize = 5;
+        const rectGeo = new THREE.BoxGeometry(rectSize, rectSize/2, rectSize);
+        const rectMat = new THREE.MeshPhongMaterial({ color: '#4DC' });
+        mesh = new THREE.Mesh(rectGeo, rectMat);
+
+        mesh.position.set(rectSize + 1, rectSize / 2, 10);
+        scene.add(mesh);
+
         const sphereRadius = 3;
         const sphereWidthDivisions = 32;
         const sphereHeightDivisions = 16;
         const sphereGeo = new THREE.SphereGeometry(sphereRadius, sphereWidthDivisions, sphereHeightDivisions);
         const sphereMat = new THREE.MeshPhongMaterial({ color: '#CA8' });
 
-        mesh.position.set(cubeSize + 1, cubeSize / 2, 0);
-        scene.add(mesh);
-
         mesh = new Mesh(sphereGeo, sphereMat);
-        mesh.position.set(-sphereRadius - 1, sphereRadius + 2, 0);
+        mesh.position.set(-sphereRadius - 10, sphereRadius + 2, 0);
         scene.add(mesh);
     }
 
-    // Lighting - Ambient light
+    // Lighting 
     {
-        const color = 0x44FF88;
-        const intensity = 0.5;
-        const light = new THREE.AmbientLight(color, intensity);
+        // Ambient light
+        const color = 0x446677;
+        let intensity = 0.5;
+        let light = new THREE.AmbientLight(color, intensity);
         scene.add(light);
-        
-        // lil-gui
+
+        // GUI controls
+        // Ambient
         const gui = new GUI();
+        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Ambient color');
+        gui.add(light, 'intensity', 0, 2, 0.01);
+
+        // Directional light
+        const dirColor = 0xFFFFFF;
+        intensity = .2;
+        light = new THREE.DirectionalLight(dirColor, intensity);
+        light.position.set(0, 10, 0);
+        light.target.position.set(-5, 0, 0);
+        scene.add(light);
+        scene.add(light.target);
+
+        const helper = new THREE.DirectionalLightHelper(light);
+        scene.add(helper);
+
+        // Directional
         gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('color');
+        gui.add(light, 'intensity', 0, 2, 0.01);
+        gui.add(light.target.position, 'x', -10, 10);
+        gui.add(light.target.position, 'z', -10, 10);
+        gui.add(light.target.position, 'y', 0, 10);
+
+        updateLight(light, helper);
+
+        makeXYZGUI(gui, light.position, 'position', updateLight);
+        makeXYZGUI(gui, light.target.position, 'target', updateLight);
+
+        // Hemisphere light
+        const skyColor = 0xB1E1FF;      // light blue
+        const groundColor = 0xB97A20;   // brownish orange
+        light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
+        scene.add(light);
+
+        // Hemisphere
+        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Sky Color');
+        gui.addColor(new ColorGUIHelper(light, 'groundColor'), 'value').name('Ground Color');
         gui.add(light, 'intensity', 0, 2, 0.01);
     }
 
@@ -204,6 +256,20 @@ function main() {
         requestAnimationFrame(render);
     }
     requestAnimationFrame(render);
+}
+
+function makeXYZGUI(gui, vector3, name, onChangeFn) {
+    const folder = gui.addFolder(name);
+    folder.add(vector3, 'x', -10, 10).onChange(onChangeFn);
+    folder.add(vector3, 'y', 0, 10).onChange(onChangeFn);
+    folder.add(vector3, 'z', -10, 10).onChange(onChangeFn);
+    folder.open();
+}
+
+
+function updateLight(light, helper) {
+    light.target.updateMatrixWorld();
+    helper.update();
 }
 
 // ====================================
