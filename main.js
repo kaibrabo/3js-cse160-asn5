@@ -21,7 +21,7 @@ class ColorGUIHelper {
 
 function main() {
     const canvas = document.getElementById('c');
-    const renderer = new THREE.WebGLRenderer({ canvas,  alpha: true, antialias: true});
+    const renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
 
     renderer.setSize(600, 300);
 
@@ -34,7 +34,7 @@ function main() {
     const fov = 90;
     // default canvas = 300x150px, aspect = 300/150 || 2.
     const aspect = 2;
-    const near = 0.01;
+    const near = 0.1;
     const far = 100;
     const camera = new THREE.PerspectiveCamera(fov, aspect, near, far);
 
@@ -45,13 +45,44 @@ function main() {
 
     // Orbit Controls
     const controls = new OrbitControls(camera, canvas);
-    controls.target.set(0, 5, 0);
+    controls.target.set(0, 0, 0);
     controls.update();
 
+    // Background
+    // let loader = new THREE.TextureLoader();
+    // const bgTexture = loader.load('./sky.png');
+    // scene.background = bgTexture;
+
+    // Cube Texture 
+    // {
+    //     let loader = new THREE.CubeTextureLoader();
+    //     let texture = loader.load([
+    //         './sky.png', 
+    //         './sky.png', 
+    //         './sky.png', 
+    //         './sky.png', 
+    //         './sky.png', 
+    //         './sky.png'
+    //     ]);
+    //     scene.background = texture;
+    // }
+
+    // 360 photo texture
+    {
+        const loader = new THREE.TextureLoader();
+        const texture = loader.load(
+            './dining_room.png',
+            () => {
+                const rt = new THREE.WebGLCubeRenderTarget(texture.image.height);
+                rt.fromEquirectangularTexture(renderer, texture);
+                scene.background = rt.texture;
+            });
+    }
+
     // Ground Plane
-    const planeSize = 40;
     const loader = new THREE.TextureLoader();
     const texture = loader.load('./checker.png');
+    const planeSize = 40;
     const repeats = planeSize / 2;
 
     texture.wrapS = THREE.RepeatWrapping;
@@ -73,14 +104,6 @@ function main() {
     const boxHeight = 1;
     const boxDepth = 1;
     const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
-
-    {
-        const color = 0xFFFFFF;
-        const intensity = 2;
-        const light = new THREE.DirectionalLight(color, intensity);
-        light.position.set(-1, 2, 4);
-        scene.add(light);
-    }
 
     // for slower connnections, display a loading progress bar
     const loadingElem = document.querySelector('#loading');
@@ -121,17 +144,17 @@ function main() {
         };
     }
 
-    
+
     makeDiceInstance(geometry, 0x44aa88, 0);
     makeDiceInstance(geometry, 0xaa8844, -2);
     makeDiceInstance(geometry, 0xaa4488, 2);
 
     makeDiceInstance(geometry, 0x44aa88, 4);
     makeDiceInstance(geometry, 0xaa8844, -4);
-    
+
     makeDiceInstance(geometry, 0xaa4488, 6);
-    makeDiceInstance(geometry, 0x4488aa, -6);    
-    
+    makeDiceInstance(geometry, 0x4488aa, -6);
+
     makeDiceInstance(geometry, 0xaa4488, 8);
     makeDiceInstance(geometry, 0x4488aa, -8);
 
@@ -165,7 +188,7 @@ function main() {
         scene.add(mesh);
 
         const rectSize = 5;
-        const rectGeo = new THREE.BoxGeometry(rectSize, rectSize/2, rectSize);
+        const rectGeo = new THREE.BoxGeometry(rectSize, rectSize / 2, rectSize);
         const rectMat = new THREE.MeshPhongMaterial({ color: '#4DC' });
         mesh = new THREE.Mesh(rectGeo, rectMat);
 
@@ -183,6 +206,14 @@ function main() {
         scene.add(mesh);
     }
 
+    {
+        const color = 0xFFFFFF;
+        const intensity = 2;
+        const light = new THREE.DirectionalLight(color, intensity);
+        light.position.set(-1, 2, 4);
+        scene.add(light);
+    }
+
     // Lighting 
     {
         // Ambient light
@@ -194,7 +225,19 @@ function main() {
         // GUI controls
         // Ambient
         const gui = new GUI();
-        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Ambient color');
+        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Ambient Light');
+        gui.add(light, 'intensity', 0, 2, 0.01);
+
+
+        // Hemisphere light
+        const skyColor = 0xB1E1FF;      // light blue
+        const groundColor = 0xB97A20;   // brownish orange
+        light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
+        scene.add(light);
+
+        // Hemisphere
+        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Hem - Sky Light');
+        gui.addColor(new ColorGUIHelper(light, 'groundColor'), 'value').name('Hem - Floor Light');
         gui.add(light, 'intensity', 0, 2, 0.01);
 
         // Directional light
@@ -210,7 +253,7 @@ function main() {
         scene.add(helper);
 
         // Directional
-        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('color');
+        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Directional Light');
         gui.add(light, 'intensity', 0, 2, 0.01);
         gui.add(light.target.position, 'x', -10, 10);
         gui.add(light.target.position, 'z', -10, 10);
@@ -220,22 +263,12 @@ function main() {
 
         makeXYZGUI(gui, light.position, 'position', updateLight);
         makeXYZGUI(gui, light.target.position, 'target', updateLight);
-
-        // Hemisphere light
-        const skyColor = 0xB1E1FF;      // light blue
-        const groundColor = 0xB97A20;   // brownish orange
-        light = new THREE.HemisphereLight(skyColor, groundColor, intensity);
-        scene.add(light);
-
-        // Hemisphere
-        gui.addColor(new ColorGUIHelper(light, 'color'), 'value').name('Sky Color');
-        gui.addColor(new ColorGUIHelper(light, 'groundColor'), 'value').name('Ground Color');
-        gui.add(light, 'intensity', 0, 2, 0.01);
     }
+
+
 
     function render(time) {
         time *= 0.001;
-
 
         cubes.forEach((cube, ndx) => {
             const speed = 1 + ndx * 0.5;
