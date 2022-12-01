@@ -48,6 +48,8 @@ function main() {
     controls.target.set(0, 0, 0);
     controls.update();
 
+    scene.add(camera);
+
     // Background
     // let loader = new THREE.TextureLoader();
     // const bgTexture = loader.load('./sky.png');
@@ -117,7 +119,7 @@ function main() {
 
     // create's an instance of a cube, using six distinct imgs
     let cubes = sceneGraph.cubes;
-    function makeDiceInstance(geometry, color, x) {
+    function makeDiceInstance(geometry, color, x, y, z) {
         const loadManager = new THREE.LoadingManager();
         const loader = new THREE.TextureLoader(loadManager);
 
@@ -135,6 +137,8 @@ function main() {
             const cube = new THREE.Mesh(geometry, materials);
             scene.add(cube); // add Mesh to Scene
             cube.position.x = x;
+            cube.position.y = y;
+            cube.position.z = z;
             cubes.push(cube)
         }
 
@@ -145,18 +149,32 @@ function main() {
     }
 
 
-    makeDiceInstance(geometry, 0x44aa88, 0);
-    makeDiceInstance(geometry, 0xaa8844, -2);
-    makeDiceInstance(geometry, 0xaa4488, 2);
+    makeDiceInstance(geometry, 0x44aa88, 0, 3, 4);
+    makeDiceInstance(geometry, 0xaa8844, -2, 3, 4);
+    makeDiceInstance(geometry, 0xaa4488, 2,3, 4);
 
-    makeDiceInstance(geometry, 0x44aa88, 4);
-    makeDiceInstance(geometry, 0xaa8844, -4);
+    makeDiceInstance(geometry, 0x44aa88, 4,3, 4);
+    makeDiceInstance(geometry, 0xaa8844, -4,3, 4);
 
-    makeDiceInstance(geometry, 0xaa4488, 6);
-    makeDiceInstance(geometry, 0x4488aa, -6);
+    makeDiceInstance(geometry, 0xaa4488, 6,3, 4);
+    makeDiceInstance(geometry, 0x4488aa, -6,3, 4);
 
-    makeDiceInstance(geometry, 0xaa4488, 8);
-    makeDiceInstance(geometry, 0x4488aa, -8);
+    makeDiceInstance(geometry, 0xaa4488, 8,3, 4);
+    makeDiceInstance(geometry, 0x4488aa, -8,3, 4);
+
+
+    makeDiceInstance(geometry, 0x44aa88, 0, 3, -4);
+    makeDiceInstance(geometry, 0xaa8844, -2, 3, -4);
+    makeDiceInstance(geometry, 0xaa4488, 2,3, -4);
+
+    makeDiceInstance(geometry, 0x44aa88, 4,3, -4);
+    makeDiceInstance(geometry, 0xaa8844, -4,3, -4);
+
+    makeDiceInstance(geometry, 0xaa4488, 6,3, -4);
+    makeDiceInstance(geometry, 0x4488aa, -6,3, -4);
+
+    makeDiceInstance(geometry, 0xaa4488, 8,3, -4);
+    makeDiceInstance(geometry, 0x4488aa, -8,3, -4);
 
     // loading an obj file
     {
@@ -204,6 +222,12 @@ function main() {
         mesh = new Mesh(sphereGeo, sphereMat);
         mesh.position.set(-sphereRadius - 10, sphereRadius + 2, 0);
         scene.add(mesh);
+
+        const geometry = new THREE.CylinderGeometry(0, 5, 10, 32);
+        const material = new THREE.MeshBasicMaterial({ color: 0x445500 });
+        const cylinder = new THREE.Mesh(geometry, material);
+        cylinder.position.set(10, 5, -5)
+        scene.add(cylinder);
     }
 
     {
