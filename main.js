@@ -19,43 +19,7 @@ class ColorGUIHelper {
     }
 }
 
-class DimensionGUIHelper {
-    constructor(obj, minProp, maxProp) {
-        this.obj = obj;
-        this.minProp = minProp;
-        this.maxProp = maxProp;
-    }
-    get value() {
-        return this.obj[this.maxProp] * 2;
-    }
-    set value(v) {
-        this.obj[this.maxProp] = v / 2;
-        this.obj[this.minProp] = v / -2;
-    }
-}
 
-class MinMaxGUIHelper {
-    constructor(obj, minProp, maxProp, minDif) {
-        this.obj = obj;
-        this.minProp = minProp;
-        this.maxProp = maxProp;
-        this.minDif = minDif;
-    }
-    get min() {
-        return this.obj[this.minProp];
-    }
-    set min(v) {
-        this.obj[this.minProp] = v;
-        this.obj[this.maxProp] = Math.max(this.obj[this.maxProp], v + this.minDif);
-    }
-    get max() {
-        return this.obj[this.maxProp];
-    }
-    set max(v) {
-        this.obj[this.maxProp] = v;
-        this.min = this.min;  // this will call the min setter
-    }
-}
 
 // We use this class to pass to lil-gui
 // so when it manipulates near or far
@@ -117,7 +81,7 @@ function main() {
     // Fog
     {
         const near = 1;
-        const far = 20;
+        const far = 50;
         const color = 0xc7e7ff;
         scene.fog = new THREE.Fog(color, near, far);
         scene.background = new THREE.Color(color);
@@ -386,6 +350,9 @@ function main() {
         scene.add(light);
         scene.add(light.target);
 
+        // Picking
+        camera.add(light);
+
         const helper = new THREE.DirectionalLightHelper(light);
         scene.add(helper);
 
@@ -400,34 +367,41 @@ function main() {
 
         makeXYZGUI(gui, light.position, 'position', updateLight);
         makeXYZGUI(gui, light.target.position, 'target', updateLight);
-
-        const updateCamera = () => {
-            // update the light target's matrixWorld because it's needed by the helper
-            light.target.updateMatrixWorld();
-            helper.update();
-            // update the light's shadow camera's projection matrix
-            light.shadow.camera.updateProjectionMatrix();
-            // and now update the camera helper we're using to show the light's shadow camera
-            cameraHelper.update();
-        }
-
-        {
-            const folder = gui.addFolder('Shadow Camera');
-            folder.open();
-            folder.add(new DimensionGUIHelper(light.shadow.camera, 'left', 'right'), 'value', 1, 100)
-                .name('width')
-                .onChange(updateCamera);
-            folder.add(new DimensionGUIHelper(light.shadow.camera, 'bottom', 'top'), 'value', 1, 100)
-                .name('height')
-                .onChange(updateCamera);
-            const minMaxGUIHelper = new MinMaxGUIHelper(light.shadow.camera, 'near', 'far', 0.1);
-            folder.add(minMaxGUIHelper, 'min', 0.1, 50, 0.1).name('near').onChange(updateCamera);
-            folder.add(minMaxGUIHelper, 'max', 0.1, 50, 0.1).name('far').onChange(updateCamera);
-            folder.add(light.shadow.camera, 'zoom', 0.01, 1.5, 0.01).onChange(updateCamera);
-        }
     }
 
+    // Picking
+    {
+        const boxWidth = 1;
+        const boxHeight = 1;
+        const boxDepth = 1;
+        const geometry = new THREE.BoxGeometry(boxWidth, boxHeight, boxDepth);
 
+        const rand = (min, max) => {
+            if (max === undefined) {
+                max = min;
+                min = 0;
+            }
+            return min + (max - min) * Math.random();
+        }
+
+        const randomColor = () => {
+            return `hsl(${rand(360) | 0}, ${rand(50, 100) | 0}%, 50%)`;
+        }
+
+        const numObjects = 100;
+        for (let i = 0; i < numObjects; ++i) {
+            const material = new THREE.MeshPhongMaterial({
+                color: randomColor(),
+            });
+
+            const cube = new THREE.Mesh(geometry, material);
+            scene.add(cube);
+
+            cube.position.set(rand(-20, 20), rand(-20, 20), rand(-20, 20));
+            cube.rotation.set(rand(Math.PI), rand(Math.PI), 0);
+            cube.scale.set(rand(1, 3), rand(1, 3), rand(1, 3));
+        }
+    }
 
     function render(time) {
         time *= 0.001;
