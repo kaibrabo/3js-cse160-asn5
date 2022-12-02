@@ -99,6 +99,7 @@ function main() {
     });
     const mesh = new THREE.Mesh(planeGeo, planeMat);
     mesh.rotation.x = Math.PI * -0.5;
+    mesh.position.z = -7;
     scene.add(mesh);
 
     // Box Geometry
@@ -114,7 +115,7 @@ function main() {
     // "scene graph"
     let sceneGraph = {
         cubes: [],
-        room: null
+        skull: null
     }
 
     // create's an instance of a cube, using six distinct imgs
@@ -180,7 +181,7 @@ function main() {
     {
         const objLoader = new OBJLoader();
         const mtlLoader = new MTLLoader();
-        mtlLoader.load('../Skull_v3/Skull_v3.mtl', (mtl) => {
+        mtlLoader.load('./Skull_v3/Skull_v3.mtl', (mtl) => {
             mtl.preload();
 
             for (const material of Object.values(mtl.materials)) {
@@ -188,9 +189,9 @@ function main() {
             }
 
             objLoader.setMaterials(mtl);
-            objLoader.load('../Skull_v3/Skull_v3.obj', (obj) => {
+            objLoader.load('./Skull_v3/Skull_v3.obj', (obj) => {
                 scene.add(obj);
-                sceneGraph.room = obj;
+                sceneGraph.skull = obj;
             });
         });
     }
@@ -301,10 +302,13 @@ function main() {
             cube.rotation.y = rot;
         });
 
-        if (sceneGraph.room) {
-            sceneGraph.room.rotation.y = time * 0.5;
-            sceneGraph.room.position.y = -7;
-            sceneGraph.room.position.y = -7;
+        if (sceneGraph.skull) {
+            sceneGraph.skull.rotation.x = -90
+            sceneGraph.skull.position.y = 0;
+            sceneGraph.skull.position.z = -15;
+            sceneGraph.skull.scale.x = 0.6;
+            sceneGraph.skull.scale.y = 0.6;
+            sceneGraph.skull.scale.z = 0.6;
         }
 
 
